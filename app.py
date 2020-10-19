@@ -8,8 +8,8 @@ def hello_name(name):
    return 'Hello %s!' % name
 
 @app.route('/')
-def hello_name(name):
-   return 'Hello World!' % name
+def hello():
+   return 'Hello World!'
 
 
 if __name__ == '__main__':
