@@ -1,1 +1,1 @@
-web: gunicorn --pythonpath src src.app:APP
+web: gunicorn --bind 0.0.0.0:$PORT flaskapp:app
