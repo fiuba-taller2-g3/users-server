@@ -54,7 +54,13 @@ app.post('/users', (req, res) =>
 app.post('/users/login', (req, res) => {
       const query = 'SELECT * FROM users WHERE username = $1 AND password = $2;'
       const values = [req.body.username, req.body.password]
-      client.query(query, values, (err, db_res) => res.send(err ? err.stack : db_res.rows[0]))
+      client.query(query, values, (err, db_res) => {
+        if (err) {
+          res.send(err.stack)
+        } else if (db_res.length == 0) {
+          res.status(404).send
+        } else res.send(db_res.rows[0])
+      })
     }
 );
 
