@@ -1,6 +1,6 @@
 FROM node:12
 WORKDIR /app
-COPY ./db_ops .
+COPY ./app .
 COPY wait-for-postgres.sh .
 RUN npm i
 RUN apt update -y
