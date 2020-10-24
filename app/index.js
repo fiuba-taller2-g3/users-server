@@ -31,11 +31,6 @@ function add_user(username, password) {
   return 'INSERT INTO users(username, password)\nVALUES (\'' + username + '\', \'' + password + '\');'
 }
 
-function get_user(username, password) {
-  //return 'SELECT * FROM users WHERE username = username AND password = password;'
-  return 'SELECT * FROM users WHERE username =' + username + 'AND password = ' + password + ';'
-}
-
 client.connect();
 client.query(INIT_CMD);
 
@@ -56,8 +51,11 @@ app.post('/users', (req, res) =>
    client.query(add_user(req.body.username, req.body.password), (err, db_res) => res.send(err ? err.stack : db_res.rows[0]))
 );
 
-app.post('/users/login', (req, res) =>
-   client.query(get_user(req.body.username, req.body.password), (err, db_res) => res.send(err ? err.stack : db_res.rows[0]))
+app.post('/users/login', (req, res) => {
+      const query = 'SELECT * FROM users WHERE username = $1 AND password = $2;'
+      const values = [req.body.username, req.body.password]
+      client.query(query, values, (err, db_res) => res.send(err ? err.stack : db_res.rows[0]))
+    }
 );
 
 app.listen(process.env.PORT, () => {
