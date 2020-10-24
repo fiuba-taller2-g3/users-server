@@ -32,7 +32,7 @@ function add_user(username, password) {
 }
 
 function get_user(username, password) {
-  return 'SELECT * FROM users WHERE username = username AND password = password);'
+  return 'SELECT * FROM users WHERE username = username AND password = password;'
 }
 
 client.connect();
@@ -51,7 +51,7 @@ app.delete('/reset', (req, res) =>
     client.query(RESET_CMD, (err) => res.send(err ? err.stack : 'DB reseted correctly\n'))
 );
 
-app.post('/user', (req, res) =>
+app.post('/users', (req, res) =>
    client.query(add_user(req.body.username, req.body.password), (err, db_res) => res.send(err ? err.stack : db_res.rows[0]))
 );
 
