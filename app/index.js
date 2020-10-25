@@ -58,7 +58,7 @@ app.post('/users/login', (req, res) => {
         if (err) {
           res.send(err.stack)
         } else if (db_res.rows.length == 0) {
-          res.status(404).send
+          res.status(404).send("Not found")
         } else res.send(db_res.rows[0])
       })
     }
