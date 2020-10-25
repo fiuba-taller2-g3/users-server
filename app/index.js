@@ -57,7 +57,7 @@ app.post('/users/login', (req, res) => {
       client.query(query, values, (err, db_res) => {
         if (err) {
           res.send(err.stack)
-        } else if (db_res.length == 0) {
+        } else if (db_res.rows.length == 0) {
           res.status(404).send
         } else res.send(db_res.rows[0])
       })
