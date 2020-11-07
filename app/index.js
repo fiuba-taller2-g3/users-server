@@ -100,8 +100,10 @@ app.post('/admins/login', (req, res) => {
         } else if (db_res.rows.length == 0) {
           res.status(404).send("Not found")
         } else {
-            var token = crypto.randomBytes(64).toString('hex');
-            res.json({"api_token": token})
+            require('crypto').randomBytes(48, function(err, buffer) {
+                var token = buffer.toString('hex');
+                res.json({"api_token": token})
+            });
         }
       })
     }
