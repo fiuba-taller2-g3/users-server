@@ -76,8 +76,8 @@ app.post('/admins', (req, res) =>
 );
 
 app.post('/users/login', (req, res) => {
-      const query = 'SELECT * FROM users WHERE username = $1 AND password = $2;'
-      const values = [req.body.username, req.body.password]
+      const query = 'SELECT * FROM users WHERE email = $1 AND password = $2;'
+      const values = [req.body.email, req.body.password]
       client.query(query, values, (err, db_res) => {
         if (err) {
           res.send(err.stack)
@@ -89,8 +89,8 @@ app.post('/users/login', (req, res) => {
 );
 
 app.post('/admins/login', (req, res) => {
-      const query = 'SELECT * FROM admins WHERE username = $1 AND password = $2;'
-      const values = [req.body.username, req.body.password]
+      const query = 'SELECT * FROM admins WHERE email = $1 AND password = $2;'
+      const values = [req.body.email, req.body.password]
       client.query(query, values, (err, db_res) => {
         if (err) {
           res.send(err.stack)
