@@ -72,8 +72,7 @@ app.post('/users', (req, res) => {
         const values = [req.body.email]
         client.query(query, values, (err, db_res) => {
             if (db_res.rows.length == 0) {
-                add_user(req.body.email, req.body.password, req.body.name, req.body.surname, req.body.dni, req.body.type)
-                res.json({"msg": "Usuario registrado exitosamente"})
+                client.query(add_admin(req.body.email, req.body.password, req.body.name, req.body.surname, req.body.dni, res.body.type), values, (err, db_res) => err ? res.send(err.stack) : res.json({"msg": "Usuario registrado exitosamente"}))
             } else {
                 res.status(409).json({"error": "El usuario ya esta registrado en el sistema"})
             }
@@ -86,8 +85,7 @@ app.post('/admins', (req, res) => {
         const values = [req.body.email]
         client.query(query, values, (err, db_res) => {
             if (db_res.rows.length == 0) {
-                add_admin(req.body.email, req.body.password, req.body.name, req.body.surname, req.body.dni)
-                res.json({"msg": "Administrador registrado exitosamente"})
+                client.query(add_admin(req.body.email, req.body.password, req.body.name, req.body.surname, req.body.dni), values, (err, db_res) => err ? res.send(err.stack) : res.json({"msg": "Administrador registrado exitosamente"}))
             } else {
                 res.status(409).json({"error": "El administrador ya esta registrado en el sistema"})
             }
