@@ -85,7 +85,7 @@ app.post('/users/login', (req, res) => {
           res.status(404).send("Not found")
         } else {
             var token = crypto.randomBytes(64).toString('hex');
-            res.json({api_token: token})
+            res.json({"api_token": token})
         }
       })
     }
@@ -101,7 +101,7 @@ app.post('/admins/login', (req, res) => {
           res.status(404).send("Not found")
         } else {
             var token = crypto.randomBytes(64).toString('hex');
-            res.json({api_token: token})
+            res.json({"api_token": token})
         }
       })
     }
