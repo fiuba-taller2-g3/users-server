@@ -44,11 +44,11 @@ const INIT_CMD = CREATE_USERS_TABLE_CMD + CREATE_ADMINS_TABLE_CMD;
 const RESET_CMD = DROP_ALL_CMD + INIT_CMD;
 
 function add_user(email, password, name, surname, dni, type) {
-  return 'INSERT INTO users(email, password, name, surname, dni, type)\nVALUES (\'' + username + '\', \'' + password + '\', \'' + name + '\', \'' + surname + '\', \'' + dni + '\', \'' + type + '\');'
+  return 'INSERT INTO users(email, password, name, surname, dni, type)\nVALUES (\'' + email + '\', \'' + password + '\', \'' + name + '\', \'' + surname + '\', \'' + dni + '\', \'' + type + '\');'
 }
 
 function add_admin(email, password, name, surname, dni) {
-  return 'INSERT INTO admins(email, password, name, surname, dni)\nVALUES (\'' + username + '\', \'' + password + '\', \'' + name + '\', \'' + surname + '\', \'' + dni + '\');'
+  return 'INSERT INTO admins(email, password, name, surname, dni)\nVALUES (\'' + email + '\', \'' + password + '\', \'' + name + '\', \'' + surname + '\', \'' + dni + '\');'
 }
 
 client.connect();
