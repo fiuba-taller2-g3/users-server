@@ -11,8 +11,8 @@ const client = new Client({
 
 const CREATE_USERS_TABLE_CMD = "\
 CREATE TABLE IF NOT EXISTS users (\
-   id int NOT NULL AUTO_INCREMENT,\
-   email VARCHAR(50) PRIMARY KEY,\
+   id SERIAL PRIMARY KEY,\
+   email VARCHAR(50) NOT NULL,\
    password VARCHAR(50) NOT NULL,\
    name VARCHAR(15) NOT NULL,\
    surname VARCHAR(20) NOT NULL,\
@@ -23,8 +23,8 @@ CREATE TABLE IF NOT EXISTS users (\
 
 const CREATE_ADMINS_TABLE_CMD = "\
 CREATE TABLE IF NOT EXISTS admins (\
-   id int NOT NULL AUTO_INCREMENT,\
-   email VARCHAR(50) PRIMARY KEY,\
+   id SERIAL PRIMARY KEY,\
+   email VARCHAR(50) NOT NULL,\
    password VARCHAR(50) NOT NULL,\
    name VARCHAR(15) NOT NULL,\
    surname VARCHAR(20) NOT NULL,\
