@@ -80,13 +80,13 @@ app.post('/users/login', (req, res) => {
       const values = [req.body.email, req.body.password]
       client.query(query, values, (err, db_res) => {
         if (err) {
-          res.send(err.stack)
+          res.send(err.messageerror)
         } else if (db_res.rows.length == 0) {
-          res.status(404).send("Not found")
+          res.status(404).json({"error": "Usuario y/o contraseña invalidos"})
         } else {
             require('crypto').randomBytes(48, function(err, buffer) {
                 var token = buffer.toString('hex');
-                res.json({"api_token": token})
+                res.json({"msg": "Usuario logueado exitosamente", "api_token": token})
             });
         }
       })
@@ -98,13 +98,13 @@ app.post('/admins/login', (req, res) => {
       const values = [req.body.email, req.body.password]
       client.query(query, values, (err, db_res) => {
         if (err) {
-          res.send(err.stack)
+          res.send(err.messageerror)
         } else if (db_res.rows.length == 0) {
-          res.status(404).send("Not found")
+          res.status(404).json({"error": "Usuario y/o contraseña invalidos"})
         } else {
             require('crypto').randomBytes(48, function(err, buffer) {
                 var token = buffer.toString('hex');
-                res.json({"api_token": token})
+                res.json({"msg": "Administrador logueado exitosamente", "api_token": token})
             });
         }
       })
