@@ -11,8 +11,24 @@ const client = new Client({
 
 const CREATE_USERS_TABLE_CMD = "\
 CREATE TABLE IF NOT EXISTS users (\
-   username VARCHAR(50) PRIMARY KEY,\
-   password VARCHAR(50) NOT NULL\
+   id int NOT NULL AUTO_INCREMENT,\
+   email VARCHAR(50) PRIMARY KEY,\
+   password VARCHAR(50) NOT NULL,\
+   name VARCHAR(15) NOT NULL,\
+   surname VARCHAR(20) NOT NULL,\
+   dni VARCHAR(10) NOT NULL,\
+   type VARCHAR(10) NOT NULL\
+);\
+";
+
+const CREATE_ADMINS_TABLE_CMD = "\
+CREATE TABLE IF NOT EXISTS admins (\
+   id int NOT NULL AUTO_INCREMENT,\
+   email VARCHAR(50) PRIMARY KEY,\
+   password VARCHAR(50) NOT NULL,\
+   name VARCHAR(15) NOT NULL,\
+   surname VARCHAR(20) NOT NULL,\
+   dni VARCHAR(10) NOT NULL\
 );\
 ";
 
@@ -23,12 +39,16 @@ GRANT ALL ON SCHEMA public TO postgres;\
 GRANT ALL ON SCHEMA public TO public;\
 ";
 
-const INIT_CMD = CREATE_USERS_TABLE_CMD;
+const INIT_CMD = CREATE_USERS_TABLE_CMD + CREATE_ADMINS_TABLE_CMD;
 
 const RESET_CMD = DROP_ALL_CMD + INIT_CMD;
 
-function add_user(username, password) {
-  return 'INSERT INTO users(username, password)\nVALUES (\'' + username + '\', \'' + password + '\');'
+function add_user(email, password, name, surname, dni, type) {
+  return 'INSERT INTO users(email, password, name, surname, dni, type)\nVALUES (\'' + username + '\', \'' + password + '\', \'' + name + '\', \'' + surname + '\', \'' + dni + '\', \'' + type + '\');'
+}
+
+function add_admin(email, password, name, surname, dni) {
+  return 'INSERT INTO admins(email, password, name, surname, dni)\nVALUES (\'' + username + '\', \'' + password + '\', \'' + name + '\', \'' + surname + '\', \'' + dni + '\');'
 }
 
 client.connect();
@@ -48,11 +68,28 @@ app.delete('/reset', (req, res) =>
 );
 
 app.post('/users', (req, res) =>
-   client.query(add_user(req.body.username, req.body.password), (err, db_res) => res.send(err ? err.stack : db_res.rows[0]))
+   client.query(add_user(req.body.email, req.body.password, req.body.name, req.body.surname, req.body.dni, req.body.type), (err, db_res) => res.send(err ? err.stack : db_res.rows[0]))
+);
+
+app.post('/admins', (req, res) =>
+   client.query(add_admin(req.body.email, req.body.password, req.body.name, req.body.surname, req.body.dni), (err, db_res) => res.send(err ? err.stack : db_res.rows[0]))
 );
 
 app.post('/users/login', (req, res) => {
       const query = 'SELECT * FROM users WHERE username = $1 AND password = $2;'
+      const values = [req.body.username, req.body.password]
+      client.query(query, values, (err, db_res) => {
+        if (err) {
+          res.send(err.stack)
+        } else if (db_res.rows.length == 0) {
+          res.status(404).send("Not found")
+        } else res.send(db_res.rows[0])
+      })
+    }
+);
+
+app.post('/admins/login', (req, res) => {
+      const query = 'SELECT * FROM admins WHERE username = $1 AND password = $2;'
       const values = [req.body.username, req.body.password]
       client.query(query, values, (err, db_res) => {
         if (err) {
