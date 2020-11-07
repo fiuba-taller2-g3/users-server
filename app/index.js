@@ -71,21 +71,14 @@ app.post('/users', (req, res) => {
         const query = 'SELECT * FROM users WHERE email = $1;'
         const values = [req.body.email]
 
-        var db_res = client.query(query, values, (err, db_res) => db_res)
-
-        if (db_res.rows.length == 0) {
-            const query = add_user(req.body.email, req.body.password, req.body.name, req.body.surname, req.body.dni, res.body.type)
-            client.query(query, values, (err, db_res) => err ? res.send(err.stack) : res.json({"msg": "Usuario registrado exitosamente"}))
-        } else {
-            res.status(409).json({"error": "El usuario ya esta registrado en el sistema"})
-        }
-        /*client.query(query, values, (err, db_res) => {
+        client.query(query, values, (err, db_res) => {
+            release()
             if (db_res.rows.length == 0) {
                 client.query(add_user(req.body.email, req.body.password, req.body.name, req.body.surname, req.body.dni, res.body.type), values, (err, db_res) => err ? res.send(err.stack) : res.json({"msg": "Usuario registrado exitosamente"}))
             } else {
                 res.status(409).json({"error": "El usuario ya esta registrado en el sistema"})
             }
-        })*/
+        })
     }
 );
 
@@ -93,6 +86,7 @@ app.post('/admins', (req, res) => {
         const query = 'SELECT * FROM admins WHERE email = $1;'
         const values = [req.body.email]
         client.query(query, values, (err, db_res) => {
+            release()
             if (db_res.rows.length == 0) {
                 client.query(add_admin(req.body.email, req.body.password, req.body.name, req.body.surname, req.body.dni), values, (err, db_res) => err ? res.send(err.stack) : res.json({"msg": "Administrador registrado exitosamente"}))
             } else {
