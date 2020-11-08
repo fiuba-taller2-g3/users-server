@@ -78,20 +78,6 @@ function manage_login_response(query, values, res, type) {
     })
 }
 
-function manage_profile_visualization(query, values, res, type) {
-    client.query(query, values, (err, db_res) => {
-        if (err) {
-            res.status(500).send(err.messageerror)
-        }
-        if (db_res.rows.length == 0) {
-            res.status(404).json({"error": `${type} no encontrado`})
-        } else {
-            const user = db_res.rows[0]
-            res.json({"id": user.id, "email": user.email, "name": user.name, "surname": user.surname, "dni": user.dni})
-        }
-    })
-}
-
 client.connect();
 client.query(INIT_CMD);
 
@@ -133,13 +119,17 @@ app.post('/admins/login', (req, res) => {
 app.get('/users/:user_id', (req, res) => {
     const query = 'SELECT * FROM users WHERE id = $1;'
     const values = [req.params.user_id]
-    manage_profile_visualization(query, values, res, "Usuario");
-});
-
-app.get('/admins/:user_id', (req, res) => {
-    const query = 'SELECT * FROM admins WHERE id = $1;'
-    const values = [req.params.user_id]
-    manage_profile_visualization(query, values, res, "Administrador");
+    client.query(query, values, (err, db_res) => {
+        if (err) {
+            res.status(500).send(err.messageerror)
+        }
+        if (db_res.rows.length == 0) {
+            res.status(404).json({"error": "Usuario no encontrado"})
+        } else {
+            const user = db_res.rows[0]
+            res.json({"id": user.id, "email": user.email, "name": user.name, "surname": user.surname, "dni": user.dni, "type": user.type})
+        }
+    })
 });
 
 app.listen(process.env.PORT, () => {
