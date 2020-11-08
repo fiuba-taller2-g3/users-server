@@ -11,8 +11,8 @@ const client = new Client({
 
 const CREATE_USERS_TABLE_CMD = "\
 CREATE TABLE IF NOT EXISTS users (\
-   id SERIAL PRIMARY KEY,\
-   email VARCHAR(50) NOT NULL,\
+   id SERIAL,\
+   email VARCHAR(50) NOT NULL PRIMARY KEY,\
    password VARCHAR(50) NOT NULL,\
    name VARCHAR(15) NOT NULL,\
    surname VARCHAR(20) NOT NULL,\
@@ -23,8 +23,8 @@ CREATE TABLE IF NOT EXISTS users (\
 
 const CREATE_ADMINS_TABLE_CMD = "\
 CREATE TABLE IF NOT EXISTS admins (\
-   id SERIAL PRIMARY KEY,\
-   email VARCHAR(50) NOT NULL,\
+   id SERIAL,\
+   email VARCHAR(50) PRIMARY KEY,\
    password VARCHAR(50) NOT NULL,\
    name VARCHAR(15) NOT NULL,\
    surname VARCHAR(20) NOT NULL,\
@@ -68,22 +68,10 @@ app.delete('/reset', (req, res) =>
 );
 
 app.post('/users', (req, res) => {
-        const query = 'SELECT * FROM users WHERE email = $1;'
-        const values = [req.body.email]
-        const select_result = client.query(query, values, (err, db_res) => db_res)
-
-        if (select_result.rows.length == 0) {
-            client.query(add_user(req.body.email, req.body.password, req.body.name, req.body.surname, req.body.dni, res.body.type), values, (err, db_res) => err ? res.send(err.stack) : res.json({"msg": "Usuario registrado exitosamente"}))
-        } else {
-            res.status(409).json({"error": "El usuario ya esta registrado en el sistema"})
-        }
-        /*client.query(query, values, (err, db_res) => {
-            if (db_res.rows.length == 0) {
-                client.query(add_user(req.body.email, req.body.password, req.body.name, req.body.surname, req.body.dni, res.body.type), values, (err, db_res) => err ? res.send(err.stack) : res.json({"msg": "Usuario registrado exitosamente"}))
-            } else {
-                res.status(409).json({"error": "El usuario ya esta registrado en el sistema"})
-            }
-        })*/
+        app.post('/users', (req, res) => {
+            const query = add_user(req.body.email, req.body.password, req.body.name, req.body.surname, req.body.dni, req.body.type)
+            client.query(query, (err, db_res) => err ? res.json({"error": err.stack}) : res.json({"msg": "Usuario registrado exitosamente"}))
+        })
     }
 );
 
