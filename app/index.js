@@ -49,7 +49,7 @@ function add_user_query(email, password, name, surname, dni, type) {
     return 'INSERT INTO users(email, password, name, surname, dni, type)\nVALUES (\'' + email + '\', \'' + password + '\', \'' + name + '\', \'' + surname + '\', \'' + dni + '\', \'' + type + '\');'
 }
 
-function add_admin(email, password, name, surname, dni) {
+function add_admin_query(email, password, name, surname, dni) {
     return 'INSERT INTO admins(email, password, name, surname, dni)\nVALUES (\'' + email + '\', \'' + password + '\', \'' + name + '\', \'' + surname + '\', \'' + dni + '\');'
 }
 
@@ -104,7 +104,7 @@ app.post('/users', (req, res) => {
 });
 
 app.post('/admins', (req, res) => {
-    const query = add_admin(req.body.email, req.body.password, req.body.name, req.body.surname, req.body.dni)
+    const query = add_admin_query(req.body.email, req.body.password, req.body.name, req.body.surname, req.body.dni)
     manage_register_response(query, res, "Administrador");
 });
 
@@ -122,9 +122,9 @@ app.post('/admins/login', (req, res) => {
 
 app.get('/users/:user_id', (req, res) => {
     const auth_header = req.header("X-Auth-Token")
-    tokens_by_id.forEach((k, v) => console.log(k))
-    console.log(tokens_by_id.get(req.params.user_id.toString()))
-    if (tokens_by_id.get(req.params.user_id) == auth_header) {
+    const id_header = req.header("X-Id")
+
+    if (tokens_by_id.get(id_header) == auth_header) {
         const query = 'SELECT * FROM users WHERE id = $1;'
         const values = [req.params.user_id]
         client.query(query, values, (err, db_res) => {
