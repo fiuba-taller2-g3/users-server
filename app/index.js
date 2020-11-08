@@ -43,13 +43,41 @@ const INIT_CMD = CREATE_USERS_TABLE_CMD + CREATE_ADMINS_TABLE_CMD;
 
 const RESET_CMD = DROP_ALL_CMD + INIT_CMD;
 
-function add_user(email, password, name, surname, dni, type) {
+function add_user_query(email, password, name, surname, dni, type) {
     return 'INSERT INTO users(email, password, name, surname, dni, type)\nVALUES (\'' + email + '\', \'' + password + '\', \'' + name + '\', \'' + surname + '\', \'' + dni + '\', \'' + type + '\');'
 }
 
 function add_admin(email, password, name, surname, dni) {
     return 'INSERT INTO admins(email, password, name, surname, dni)\nVALUES (\'' + email + '\', \'' + password + '\', \'' + name + '\', \'' + surname + '\', \'' + dni + '\');'
 }
+
+function manage_register_response(query, res, type) {
+    client.query(query, (err, db_res) => {
+        if (err)
+            if (err.code == 23505) {
+                res.status(409).json({"error": `El ${type} ya esta registrado en el sistema`})
+            } else
+                res.status(500).json({"error": err.stack})
+        else
+            res.json({"msg": `${type} registrado exitosamente`})
+    })
+}
+
+function manage_login_response(query, values, res, type) {
+    client.query(query, values, (err, db_res) => {
+        if (err) {
+            res.send(err.messageerror)
+        } else if (db_res.rows.length == 0) {
+            res.status(404).json({"error": "Email y/o contraseña invalidos"})
+        } else {
+            require('crypto').randomBytes(48, function (err, buffer) {
+                var token = buffer.toString('hex');
+                res.json({"msg": `${type} logueado exitosamente`, "api_token": token})
+            });
+        }
+    })
+}
+
 
 client.connect();
 client.query(INIT_CMD);
@@ -68,66 +96,26 @@ app.delete('/reset', (req, res) =>
 );
 
 app.post('/users', (req, res) => {
-    const query = add_user(req.body.email, req.body.password, req.body.name, req.body.surname, req.body.dni, req.body.type)
-    client.query(query, (err, db_res) => {
-        if (err)
-                if (err.code == 23505) {
-                    res.status(409).json({"error": "El usuario ya esta registrado en el sistema"})
-                } else
-                    res.status(500).json({"error": err.stack})
-            else
-                res.json({"msg": "Usuario registrado exitosamente"})
-    })
+    const query = add_user_query(req.body.email, req.body.password, req.body.name, req.body.surname, req.body.dni, req.body.type)
+    manage_register_response(query, res, "Usuario");
 });
 
 app.post('/admins', (req, res) => {
-        const query = add_admin(req.body.email, req.body.password, req.body.name, req.body.surname, req.body.dni)
-        client.query(query, (err, db_res) => {
-            if (err)
-                if (err.code == 23505) {
-                    res.status(409).json({"error": "El administrador ya esta registrado en el sistema"})
-                } else
-                    res.status(500).json({"error": err.stack})
-            else
-                res.json({"msg": "Administrador registrado exitosamente"})
-        })
+    const query = add_admin(req.body.email, req.body.password, req.body.name, req.body.surname, req.body.dni)
+    manage_register_response(query, res, "Administrador");
 });
 
 app.post('/users/login', (req, res) => {
-        const query = 'SELECT * FROM users WHERE email = $1 AND password = $2;'
-        const values = [req.body.email, req.body.password]
-        client.query(query, values, (err, db_res) => {
-            if (err) {
-                res.send(err.messageerror)
-            } else if (db_res.rows.length == 0) {
-                res.status(404).json({"error": "Email y/o contraseña invalidos"})
-            } else {
-                require('crypto').randomBytes(48, function (err, buffer) {
-                    var token = buffer.toString('hex');
-                    res.json({"msg": "Usuario logueado exitosamente", "api_token": token})
-                });
-            }
-        })
-    }
-);
+    const query = 'SELECT * FROM users WHERE email = $1 AND password = $2;'
+    const values = [req.body.email, req.body.password]
+    manage_login_response(query, values, res, "Usuario");
+});
 
 app.post('/admins/login', (req, res) => {
-        const query = 'SELECT * FROM admins WHERE email = $1 AND password = $2;'
-        const values = [req.body.email, req.body.password]
-        client.query(query, values, (err, db_res) => {
-            if (err) {
-                res.send(err.messageerror)
-            } else if (db_res.rows.length == 0) {
-                res.status(404).json({"error": "Email y/o contraseña invalidos"})
-            } else {
-                require('crypto').randomBytes(48, function (err, buffer) {
-                    var token = buffer.toString('hex');
-                    res.json({"msg": "Administrador logueado exitosamente", "api_token": token})
-                });
-            }
-        })
-    }
-);
+    const query = 'SELECT * FROM admins WHERE email = $1 AND password = $2;'
+    const values = [req.body.email, req.body.password]
+    manage_login_response(query, values, res, "Administrador");
+});
 
 app.listen(process.env.PORT, () => {
     console.log(`App running on port ${process.env.PORT}`);
