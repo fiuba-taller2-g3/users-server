@@ -70,7 +70,7 @@ app.delete('/reset', (req, res) =>
 app.post('/users', (req, res) => {
         const query = 'SELECT * FROM users WHERE email = $1;'
         const values = [req.body.email]
-        const select_result = client.query(query, values)
+        const select_result = client.query(query, valuesl, (err, db_res) => db_res)
 
         if (select_result.rows.length == 0) {
             client.query(add_user(req.body.email, req.body.password, req.body.name, req.body.surname, req.body.dni, res.body.type), values, (err, db_res) => err ? res.send(err.stack) : res.json({"msg": "Usuario registrado exitosamente"}))
