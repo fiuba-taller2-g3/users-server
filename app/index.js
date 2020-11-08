@@ -69,21 +69,29 @@ app.delete('/reset', (req, res) =>
 
 app.post('/users', (req, res) => {
     const query = add_user(req.body.email, req.body.password, req.body.name, req.body.surname, req.body.dni, req.body.type)
-    client.query(query, (err, db_res) => err ? res.json({"error": err.stack}) : res.json({"msg": "Usuario registrado exitosamente"}))
+    client.query(query, (err, db_res) => {
+        if (err)
+                if (err.stack.contains("duplicate key value violates unique constraint")) {
+                    res.status(409).json({"error": "El Usuario ya esta registrado en el sistema"})
+                } else
+                    res.status(500).json({"error": err.stack})
+            else
+                res.json({"msg": "Usuario registrado exitosamente"})
+    })
 });
 
 app.post('/admins', (req, res) => {
-        const query = 'SELECT * FROM admins WHERE email = $1;'
-        const values = [req.body.email]
-        client.query(query, values, (err, db_res) => {
-            if (db_res.rows.length == 0) {
-                client.query(add_admin(req.body.email, req.body.password, req.body.name, req.body.surname, req.body.dni), values, (err, db_res) => err ? res.send(err.stack) : res.json({"msg": "Administrador registrado exitosamente"}))
-            } else {
-                res.status(409).json({"error": "El administrador ya esta registrado en el sistema"})
-            }
+        const query = add_admin(req.body.email, req.body.password, req.body.name, req.body.surname, req.body.dni)
+        client.query(query, (err, db_res) => {
+            if (err)
+                if (err.stack.contains("duplicate key value violates unique constraint")) {
+                    res.status(409).json({"error": "El administrador ya esta registrado en el sistema"})
+                } else
+                    res.status(500).json({"error": err.stack})
+            else
+                res.json({"msg": "Administrador registrado exitosamente"})
         })
-    }
-);
+});
 
 app.post('/users/login', (req, res) => {
         const query = 'SELECT * FROM users WHERE email = $1 AND password = $2;'
