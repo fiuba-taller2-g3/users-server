@@ -68,12 +68,9 @@ app.delete('/reset', (req, res) =>
 );
 
 app.post('/users', (req, res) => {
-        app.post('/users', (req, res) => {
-            const query = add_user(req.body.email, req.body.password, req.body.name, req.body.surname, req.body.dni, req.body.type)
-            client.query(query, (err, db_res) => err ? res.json({"error": err.stack}) : res.json({"msg": "Usuario registrado exitosamente"}))
-        })
-    }
-);
+    const query = add_user(req.body.email, req.body.password, req.body.name, req.body.surname, req.body.dni, req.body.type)
+    client.query(query, (err, db_res) => err ? res.json({"error": err.stack}) : res.json({"msg": "Usuario registrado exitosamente"}))
+});
 
 app.post('/admins', (req, res) => {
         const query = 'SELECT * FROM admins WHERE email = $1;'
