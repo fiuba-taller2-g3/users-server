@@ -84,7 +84,7 @@ app.post('/admins', (req, res) => {
         const query = add_admin(req.body.email, req.body.password, req.body.name, req.body.surname, req.body.dni)
         client.query(query, (err, db_res) => {
             if (err)
-                if (err.messageerror.contains("duplicate key value violates unique constraint")) {
+                if (err.code == 23505) {
                     res.status(409).json({"error": "El administrador ya esta registrado en el sistema"})
                 } else
                     res.status(500).json({"error": err.stack})
