@@ -43,6 +43,8 @@ const INIT_CMD = CREATE_USERS_TABLE_CMD + CREATE_ADMINS_TABLE_CMD;
 
 const RESET_CMD = DROP_ALL_CMD + INIT_CMD;
 
+var tokens_by_id = new Map()
+
 function add_user_query(email, password, name, surname, dni, type) {
     return 'INSERT INTO users(email, password, name, surname, dni, type)\nVALUES (\'' + email + '\', \'' + password + '\', \'' + name + '\', \'' + surname + '\', \'' + dni + '\', \'' + type + '\');'
 }
@@ -71,8 +73,10 @@ function manage_login_response(query, values, res, type) {
             res.status(404).json({"error": "Email y/o contraseña invalidos"})
         } else {
             require('crypto').randomBytes(48, function (err, buffer) {
-                var token = buffer.toString('hex');
-                res.json({"msg": `${type} logueado exitosamente`, "api_token": token, "id": db_res.rows[0].id})
+                const id = db_res.rows[0].id
+                const token = buffer.toString('hex');
+                tokens_by_id.set(key=id.toString(), value=token)
+                res.json({"msg": `${type} logueado exitosamente`, "api_token": token, "id": id})
             });
         }
     })
@@ -117,19 +121,33 @@ app.post('/admins/login', (req, res) => {
 });
 
 app.get('/users/:user_id', (req, res) => {
-    const query = 'SELECT * FROM users WHERE id = $1;'
-    const values = [req.params.user_id]
-    client.query(query, values, (err, db_res) => {
-        if (err) {
-            res.status(500).send(err.messageerror)
-        }
-        if (db_res.rows.length == 0) {
-            res.status(404).json({"error": "Usuario no encontrado"})
-        } else {
-            const user = db_res.rows[0]
-            res.json({"id": user.id, "email": user.email, "name": user.name, "surname": user.surname, "dni": user.dni, "type": user.type})
-        }
-    })
+    const auth_header = req.header("X-Auth-Token")
+    tokens_by_id.forEach((k, v) => console.log(k))
+    console.log(tokens_by_id.get(req.params.user_id.toString()))
+    if (tokens_by_id.get(req.params.user_id) == auth_header) {
+        const query = 'SELECT * FROM users WHERE id = $1;'
+        const values = [req.params.user_id]
+        client.query(query, values, (err, db_res) => {
+            if (err) {
+                res.status(500).send(err.messageerror)
+            }
+            if (db_res.rows.length == 0) {
+                res.status(404).json({"error": "Usuario no encontrado"})
+            } else {
+                const user = db_res.rows[0]
+                res.json({
+                    "id": user.id,
+                    "email": user.email,
+                    "name": user.name,
+                    "surname": user.surname,
+                    "dni": user.dni,
+                    "type": user.type
+                })
+            }
+        })
+    } else {
+        res.status(403).json({"error": "No estas autorizado para hacer este request"})
+    }
 });
 
 app.listen(process.env.PORT, () => {
