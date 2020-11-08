@@ -71,8 +71,8 @@ app.post('/users', (req, res) => {
     const query = add_user(req.body.email, req.body.password, req.body.name, req.body.surname, req.body.dni, req.body.type)
     client.query(query, (err, db_res) => {
         if (err)
-                if (err.stack.contains("duplicate key value violates unique constraint")) {
-                    res.status(409).json({"error": "El Usuario ya esta registrado en el sistema"})
+                if (err.code == 23505) {
+                    res.status(409).json({"error": "El usuario ya esta registrado en el sistema"})
                 } else
                     res.status(500).json({"error": err.stack})
             else
