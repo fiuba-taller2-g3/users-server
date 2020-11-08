@@ -72,7 +72,7 @@ function manage_login_response(query, values, res, type) {
         } else {
             require('crypto').randomBytes(48, function (err, buffer) {
                 var token = buffer.toString('hex');
-                res.json({"msg": `${type} logueado exitosamente`, "api_token": token})
+                res.json({"msg": `${type} logueado exitosamente`, "api_token": token, "id": db_res.rows[0].id})
             });
         }
     })
