@@ -16,7 +16,6 @@ CREATE TABLE IF NOT EXISTS users (\
    password VARCHAR(50) NOT NULL,\
    name VARCHAR(15) NOT NULL,\
    surname VARCHAR(20) NOT NULL,\
-   dni VARCHAR(10) NOT NULL,\
    type VARCHAR(10) NOT NULL\
 );\
 ";
@@ -45,8 +44,8 @@ const RESET_CMD = DROP_ALL_CMD + INIT_CMD;
 
 var tokens_by_id = new Map()
 
-function add_user_query(email, password, name, surname, dni, type) {
-    return 'INSERT INTO users(email, password, name, surname, dni, type)\nVALUES (\'' + email + '\', \'' + password + '\', \'' + name + '\', \'' + surname + '\', \'' + dni + '\', \'' + type + '\');'
+function add_user_query(email, password, name, surname, type) {
+    return 'INSERT INTO users(email, password, name, surname, type)\nVALUES (\'' + email + '\', \'' + password + '\', \'' + name + '\', \'' + surname + '\', \'' + type + '\');'
 }
 
 function add_admin_query(email, password, name, surname, dni) {
@@ -99,7 +98,7 @@ app.delete('/reset', (req, res) =>
 );
 
 app.post('/users', (req, res) => {
-    const query = add_user_query(req.body.email, req.body.password, req.body.name, req.body.surname, req.body.dni, req.body.type)
+    const query = add_user_query(req.body.email, req.body.password, req.body.name, req.body.surname, req.body.type)
     manage_register_response(query, res, "Usuario");
 });
 
@@ -140,7 +139,6 @@ app.get('/users/:user_id', (req, res) => {
                     "email": user.email,
                     "name": user.name,
                     "surname": user.surname,
-                    "dni": user.dni,
                     "type": user.type
                 })
             }
