@@ -74,7 +74,7 @@ function manage_login_response(query, values, res, type) {
             require('crypto').randomBytes(48, function (err, buffer) {
                 const id = db_res.rows[0].id
                 const token = buffer.toString('hex');
-                tokens_by_id.set(key=id.toString(), value=token)
+                tokens_by_id.set(key = id.toString(), value = token)
                 res.json({"msg": `${type} logueado exitosamente`, "api_token": token, "id": id})
             });
         }
@@ -148,6 +148,39 @@ app.get('/users/:user_id', (req, res) => {
     }
 });
 
+app.get('/users', (req, res) => {
+    const auth_header = req.header("X-Auth-Token")
+    const id_header = req.header("X-Id")
+
+    if (tokens_by_id.get(id_header) == auth_header) {
+        const query = 'SELECT id, email FROM users;'
+        client.query(query, (err, db_res) => {
+            if (err) {
+                res.status(500).send(err.messageerror)
+            }
+            if (db_res.rows.length == 0) {
+                res.status(404).json({"error": "No hay usuarios para mostrar"})
+            } else {
+                var users = []
+                db_res.rows.forEach(user => users.push(new User(user.id, user.email, user.name, user.surname, user.type)))
+                res.json(users)
+            }
+        })
+    } else {
+        res.status(403).json({"error": "No estas autorizado para hacer este request"})
+    }
+});
+
 app.listen(process.env.PORT, () => {
     console.log(`App running on port ${process.env.PORT}`);
 });
+
+class User {
+    constructor(id, email, name, surname, type) {
+        this.id = id;
+        this.email = email;
+        this.name = name;
+        this.surname = surname;
+        this.type = type;
+    }
+}
