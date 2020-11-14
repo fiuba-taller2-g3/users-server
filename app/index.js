@@ -17,6 +17,9 @@ CREATE TABLE IF NOT EXISTS users (\
    name VARCHAR(15) NOT NULL,\
    surname VARCHAR(20) NOT NULL,\
    type VARCHAR(10) NOT NULL,\
+   phone_number VARCHAR(10) NOT NULL,\
+   gender VARCHAR(10) NOT NULL,\
+   birth_date DATE NOT NULL,\
    is_blocked BOOLEAN DEFAULT false\
 );\
 ";
@@ -45,8 +48,8 @@ const RESET_CMD = DROP_ALL_CMD + INIT_CMD;
 
 var tokens_by_id = new Map()
 
-function add_user_query(email, password, name, surname, type) {
-    return 'INSERT INTO users(email, password, name, surname, type)\nVALUES (\'' + email + '\', \'' + password + '\', \'' + name + '\', \'' + surname + '\', \'' + type + '\');'
+function add_user_query(email, password, name, surname, type, phone_number, gender, birth_date) {
+    return 'INSERT INTO users(email, password, name, surname, type, phone_number, gender, birth_date)\nVALUES (\'' + email + '\', \'' + password + '\', \'' + name + '\', \'' + surname + '\', \'' + type + '\', \'' + phone_number + '\', \'' + gender + '\', \'' + birth_date + '\');'
 }
 
 function add_admin_query(email, password, name, surname, dni) {
@@ -103,7 +106,8 @@ app.delete('/reset', (req, res) =>
 );
 
 app.post('/users', (req, res) => {
-    const query = add_user_query(req.body.email, req.body.password, req.body.name, req.body.surname, req.body.type)
+    const query = add_user_query(req.body.email, req.body.password, req.body.name, req.body.surname, req.body.type,
+        req.body.phone_number, req.body.gender, req.body.birth_date)
     manage_register_response(query, res, "Usuario");
 });
 
@@ -144,7 +148,10 @@ app.get('/users/:user_id', (req, res) => {
                     "email": user.email,
                     "name": user.name,
                     "surname": user.surname,
-                    "type": user.type
+                    "type": user.type,
+                    "phone_number": user.phone_number,
+                    "gender": user.gender,
+                    "birth_date": user.birth_date
                 })
             }
         })
@@ -201,11 +208,14 @@ app.listen(process.env.PORT, () => {
 });
 
 class User {
-    constructor(id, email, name, surname, type) {
+    constructor(id, email, name, surname, type, phone_number, gender, birth_date) {
         this.id = id;
         this.email = email;
         this.name = name;
         this.surname = surname;
         this.type = type;
+        this.phone_number = phone_number;
+        this.gender = gender;
+        this.birth_date = birth_date;
     }
 }
