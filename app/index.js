@@ -16,7 +16,8 @@ CREATE TABLE IF NOT EXISTS users (\
    password VARCHAR(50) NOT NULL,\
    name VARCHAR(15) NOT NULL,\
    surname VARCHAR(20) NOT NULL,\
-   type VARCHAR(10) NOT NULL\
+   type VARCHAR(10) NOT NULL,\
+   is_blocked BOOLEAN DEFAULT false\
 );\
 ";
 
@@ -71,12 +72,16 @@ function manage_login_response(query, values, res, type) {
         } else if (db_res.rows.length == 0) {
             res.status(404).json({"error": "Email y/o contraseña invalidos"})
         } else {
-            require('crypto').randomBytes(48, function (err, buffer) {
-                const id = db_res.rows[0].id
-                const token = buffer.toString('hex');
-                tokens_by_id.set(key = id.toString(), value = token)
-                res.json({"msg": `${type} logueado exitosamente`, "api_token": token, "id": id})
-            });
+            if (db_res.rows[0].is_blocked) {
+                res.status(403).json({"error": "El usuario está bloqueado"})
+            } else {
+                require('crypto').randomBytes(48, function (err, buffer) {
+                    const id = db_res.rows[0].id
+                    const token = buffer.toString('hex');
+                    tokens_by_id.set(key = id.toString(), value = token)
+                    res.json({"msg": `${type} logueado exitosamente`, "api_token": token, "id": id})
+                });
+            }
         }
     })
 }
@@ -144,7 +149,7 @@ app.get('/users/:user_id', (req, res) => {
             }
         })
     } else {
-        res.status(403).json({"error": "No estas autorizado para hacer este request"})
+        res.status(401).json({"error": "No estas autorizado para hacer este request"})
     }
 });
 
@@ -167,7 +172,27 @@ app.get('/users', (req, res) => {
             }
         })
     } else {
-        res.status(403).json({"error": "No estas autorizado para hacer este request"})
+        res.status(401).json({"error": "No estas autorizado para hacer este request"})
+    }
+});
+
+app.put('/users/:user_id', (req, res) => {
+    const auth_header = req.header("X-Auth-Token")
+    const id_header = req.header("X-Id")
+
+    if (tokens_by_id.get(id_header) == auth_header) {
+        const query = 'UPDATE users SET is_blocked = $1 WHERE id = $2;'
+        const values = [req.body.is_blocked, req.params.user_id]
+        client.query(query, values, (err, db_res) => {
+            console.log(db_res)
+            if (err) {
+                res.status(500).send(err.messageerror)
+            } else {
+                res.json({"msg": "El usuario fue actualizado"})
+            }
+        })
+    } else {
+        res.status(401).json({"error": "No estas autorizado para hacer este request"})
     }
 });
 
