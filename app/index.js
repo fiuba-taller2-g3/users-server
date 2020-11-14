@@ -176,7 +176,7 @@ app.get('/users', (req, res) => {
     }
 });
 
-app.put('/users/:user_id', (req, res) => {
+app.patch('/users/:user_id', (req, res) => {
     const auth_header = req.header("X-Auth-Token")
     const id_header = req.header("X-Id")
 
