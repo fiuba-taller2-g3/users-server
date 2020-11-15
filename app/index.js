@@ -46,7 +46,6 @@ const INIT_CMD = CREATE_USERS_TABLE_CMD + CREATE_ADMINS_TABLE_CMD;
 
 const RESET_CMD = DROP_ALL_CMD + INIT_CMD;
 
-var tokens_by_id = new Map()
 
 function add_user_query(email, password, name, surname, type, phone_number, gender, birth_date) {
     return 'INSERT INTO users(email, password, name, surname, type, phone_number, gender, birth_date)\nVALUES (\'' + email + '\', \'' + password + '\', \'' + name + '\', \'' + surname + '\', \'' + type + '\', \'' + phone_number + '\', \'' + gender + '\', \'' + birth_date + '\');'
@@ -78,12 +77,7 @@ function manage_login_response(query, values, res, type) {
             if (db_res.rows[0].is_blocked) {
                 res.status(403).json({"error": "El usuario está bloqueado"})
             } else {
-                require('crypto').randomBytes(48, function (err, buffer) {
-                    const id = db_res.rows[0].id
-                    const token = buffer.toString('hex');
-                    tokens_by_id.set(key = id.toString(), value = token)
-                    res.json({"msg": `${type} logueado exitosamente`, "api_token": token, "id": id})
-                });
+                res.json({"msg": `${type} logueado exitosamente`, "exp": "", "id": db_res.rows[0].id})
             }
         }
     })
@@ -129,78 +123,57 @@ app.post('/admins/login', (req, res) => {
 });
 
 app.get('/users/:user_id', (req, res) => {
-    const auth_header = req.header("X-Auth-Token")
-    const id_header = req.header("X-Id")
-
-    if (tokens_by_id.get(id_header) == auth_header) {
-        const query = 'SELECT * FROM users WHERE id = $1;'
-        const values = [req.params.user_id]
-        client.query(query, values, (err, db_res) => {
-            if (err) {
-                res.status(500).send(err.messageerror)
-            }
-            if (db_res.rows.length == 0) {
-                res.status(404).json({"error": "Usuario no encontrado"})
-            } else {
-                const user = db_res.rows[0]
-                res.json({
-                    "id": user.id,
-                    "email": user.email,
-                    "name": user.name,
-                    "surname": user.surname,
-                    "type": user.type,
-                    "phone_number": user.phone_number,
-                    "gender": user.gender,
-                    "birth_date": user.birth_date
-                })
-            }
-        })
-    } else {
-        res.status(401).json({"error": "No estas autorizado para hacer este request"})
-    }
+    const query = 'SELECT * FROM users WHERE id = $1;'
+    const values = [req.params.user_id]
+    client.query(query, values, (err, db_res) => {
+        if (err) {
+            res.status(500).send(err.messageerror)
+        }
+        if (db_res.rows.length == 0) {
+            res.status(404).json({"error": "Usuario no encontrado"})
+        } else {
+            const user = db_res.rows[0]
+            res.json({
+                "id": user.id,
+                "email": user.email,
+                "name": user.name,
+                "surname": user.surname,
+                "type": user.type,
+                "phone_number": user.phone_number,
+                "gender": user.gender,
+                "birth_date": user.birth_date
+            })
+        }
+    })
 });
 
 app.get('/users', (req, res) => {
-    const auth_header = req.header("X-Auth-Token")
-    const id_header = req.header("X-Id")
-
-    if (tokens_by_id.get(id_header) == auth_header) {
-        const query = 'SELECT id, email FROM users;'
-        client.query(query, (err, db_res) => {
-            if (err) {
-                res.status(500).send(err.messageerror)
-            }
-            if (db_res.rows.length == 0) {
-                res.status(404).json({"error": "No hay usuarios para mostrar"})
-            } else {
-                var users = []
-                db_res.rows.forEach(user => users.push(new User(user.id, user.email, user.name, user.surname, user.type)))
-                res.json(users)
-            }
-        })
-    } else {
-        res.status(401).json({"error": "No estas autorizado para hacer este request"})
-    }
+    const query = 'SELECT id, email FROM users;'
+    client.query(query, (err, db_res) => {
+        if (err) {
+            res.status(500).send(err.messageerror)
+        }
+        if (db_res.rows.length == 0) {
+            res.status(404).json({"error": "No hay usuarios para mostrar"})
+        } else {
+            var users = []
+            db_res.rows.forEach(user => users.push(new User(user.id, user.email, user.name, user.surname, user.type)))
+            res.json(users)
+        }
+    })
 });
 
 app.patch('/users/:user_id', (req, res) => {
-    const auth_header = req.header("X-Auth-Token")
-    const id_header = req.header("X-Id")
-
-    if (tokens_by_id.get(id_header) == auth_header) {
-        const query = 'UPDATE users SET is_blocked = $1 WHERE id = $2;'
-        const values = [req.body.is_blocked, req.params.user_id]
-        client.query(query, values, (err, db_res) => {
-            console.log(db_res)
-            if (err) {
-                res.status(500).send(err.messageerror)
-            } else {
-                res.json({"msg": "El usuario fue actualizado"})
-            }
-        })
-    } else {
-        res.status(401).json({"error": "No estas autorizado para hacer este request"})
-    }
+    const query = 'UPDATE users SET is_blocked = $1 WHERE id = $2;'
+    const values = [req.body.is_blocked, req.params.user_id]
+    client.query(query, values, (err, db_res) => {
+        console.log(db_res)
+        if (err) {
+            res.status(500).send(err.messageerror)
+        } else {
+            res.json({"msg": "El usuario fue actualizado"})
+        }
+    })
 });
 
 app.listen(process.env.PORT, () => {
