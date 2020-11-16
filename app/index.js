@@ -176,6 +176,20 @@ app.patch('/users/:user_id', (req, res) => {
     })
 });
 
+app.put('/users/:user_id', (req, res) => {
+    const query = 'UPDATE users SET email = $1, password = $2, name = $3, surname = $4, phone_number = $5, gender = $6, birth_date = $7 WHERE id = $8;'
+    const values = [req.body.email, req.body.password, req.body.name, req.body.surname, req.body.phone_number,
+        req.body.gender, req.body.birth_date, req.params.user_id]
+    client.query(query, values, (err, db_res) => {
+        console.log(db_res)
+        if (err) {
+            res.status(500).send(err.messageerror)
+        } else {
+            res.json({"msg": "El usuario fue actualizado"})
+        }
+    })
+});
+
 app.listen(process.env.PORT, () => {
     console.log(`App running on port ${process.env.PORT}`);
 });
