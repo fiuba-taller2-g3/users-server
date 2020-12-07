@@ -16,7 +16,6 @@ CREATE TABLE IF NOT EXISTS users (\
    password VARCHAR(50) NOT NULL,\
    name VARCHAR(15) NOT NULL,\
    surname VARCHAR(20) NOT NULL,\
-   type VARCHAR(10) NOT NULL,\
    phone_number VARCHAR(10) NOT NULL,\
    gender VARCHAR(10) NOT NULL,\
    birth_date DATE NOT NULL,\
@@ -47,8 +46,8 @@ const INIT_CMD = CREATE_USERS_TABLE_CMD + CREATE_ADMINS_TABLE_CMD;
 const RESET_CMD = DROP_ALL_CMD + INIT_CMD;
 
 
-function add_user_query(email, password, name, surname, type, phone_number, gender, birth_date) {
-    return 'INSERT INTO users(email, password, name, surname, type, phone_number, gender, birth_date)\nVALUES (\'' + email + '\', \'' + password + '\', \'' + name + '\', \'' + surname + '\', \'' + type + '\', \'' + phone_number + '\', \'' + gender + '\', \'' + birth_date + '\');'
+function add_user_query(email, password, name, surname, phone_number, gender, birth_date) {
+    return 'INSERT INTO users(email, password, name, surname, phone_number, gender, birth_date)\nVALUES (\'' + email + '\', \'' + password + '\', \'' + name + '\', \'' + surname + '\', \'' + phone_number + '\', \'' + gender + '\', \'' + birth_date + '\');'
 }
 
 function add_admin_query(email, password, name, surname, dni) {
@@ -100,8 +99,8 @@ app.delete('/reset', (req, res) =>
 );
 
 app.post('/users', (req, res) => {
-    const query = add_user_query(req.body.email, req.body.password, req.body.name, req.body.surname, req.body.type,
-        req.body.phone_number, req.body.gender, req.body.birth_date)
+    const query = add_user_query(req.body.email, req.body.password, req.body.name, req.body.surname, req.body.phone_number,
+        req.body.gender, req.body.birth_date)
     manage_register_response(query, res, "Usuario");
 });
 
@@ -138,7 +137,6 @@ app.get('/users/:user_id', (req, res) => {
                 "email": user.email,
                 "name": user.name,
                 "surname": user.surname,
-                "type": user.type,
                 "phone_number": user.phone_number,
                 "gender": user.gender,
                 "birth_date": user.birth_date
@@ -148,7 +146,7 @@ app.get('/users/:user_id', (req, res) => {
 });
 
 app.get('/users', (req, res) => {
-    const query = 'SELECT id, email, type, is_blocked FROM users;'
+    const query = 'SELECT id, email, is_blocked FROM users;'
     client.query(query, (err, db_res) => {
         if (err) {
             res.status(500).send(err.messageerror)
@@ -157,7 +155,7 @@ app.get('/users', (req, res) => {
             res.status(404).json({"error": "No hay usuarios para mostrar"})
         } else {
             var users = []
-            db_res.rows.forEach(user => users.push(new User(user.id, user.email, user.name, user.surname, user.type, user.is_blocked)))
+            db_res.rows.forEach(user => users.push(new User(user.id, user.email, user.name, user.surname, user.is_blocked)))
             res.json(users)
         }
     })
@@ -196,12 +194,11 @@ app.listen(process.env.PORT, () => {
 });
 
 class User {
-    constructor(id, email, name, surname, type, is_blocked, phone_number, gender, birth_date) {
+    constructor(id, email, name, surname, is_blocked, phone_number, gender, birth_date) {
         this.id = id;
         this.email = email;
         this.name = name;
         this.surname = surname;
-        this.type = type;
         this.is_blocked = is_blocked;
         this.phone_number = phone_number;
         this.gender = gender;
