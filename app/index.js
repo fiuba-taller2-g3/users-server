@@ -19,6 +19,8 @@ CREATE TABLE IF NOT EXISTS users (\
    phone_number VARCHAR(10) NOT NULL,\
    gender VARCHAR(10) NOT NULL,\
    birth_date DATE NOT NULL,\
+   wallet_id INT NOT NULL,\
+   wallet_address VARCHAR(100) NOT NULL,\
    is_blocked BOOLEAN DEFAULT false\
 );\
 ";
@@ -46,8 +48,8 @@ const INIT_CMD = CREATE_USERS_TABLE_CMD + CREATE_ADMINS_TABLE_CMD;
 const RESET_CMD = DROP_ALL_CMD + INIT_CMD;
 
 
-function add_user_query(email, password, name, surname, phone_number, gender, birth_date) {
-    return 'INSERT INTO users(email, password, name, surname, phone_number, gender, birth_date)\nVALUES (\'' + email + '\', \'' + password + '\', \'' + name + '\', \'' + surname + '\', \'' + phone_number + '\', \'' + gender + '\', \'' + birth_date + '\');'
+function add_user_query(email, password, name, surname, phone_number, gender, birth_date, wallet_id, wallet_address) {
+    return 'INSERT INTO users(email, password, name, surname, phone_number, gender, birth_date, wallet_id, wallet_address)\nVALUES (\'' + email + '\', \'' + password + '\', \'' + name + '\', \'' + surname + '\', \'' + phone_number + '\', \'' + gender + '\', \'' + birth_date + '\', \'' + wallet_id + '\', \'' + wallet_address + '\');'
 }
 
 function add_admin_query(email, password, name, surname, dni) {
@@ -99,9 +101,23 @@ app.delete('/reset', (req, res) =>
 );
 
 app.post('/users', (req, res) => {
-    const query = add_user_query(req.body.email, req.body.password, req.body.name, req.body.surname, req.body.phone_number,
-        req.body.gender, req.body.birth_date)
-    manage_register_response(query, res, "Usuario");
+    var request = require('request');
+
+    request.post('https://payments-server-develop.herokuapp.com/identity', function (error, response, body) {
+        if (!error && response.statusCode == 200) {
+            console.log('BODY: ' + body);
+            const wallet_info = JSON.parse(body)
+            const wallet_id = wallet_info.id
+            const wallet_address = wallet_info.address
+
+            console.log('wallet id: ' + wallet_info.id);
+            console.log('wallet address: ' + wallet_info.address);
+
+            const query = add_user_query(req.body.email, req.body.password, req.body.name, req.body.surname, req.body.phone_number,
+                req.body.gender, req.body.birth_date, wallet_id, wallet_address)
+            manage_register_response(query, res, "Usuario");
+        }
+    })
 });
 
 app.post('/admins', (req, res) => {
@@ -139,7 +155,8 @@ app.get('/users/:user_id', (req, res) => {
                 "surname": user.surname,
                 "phone_number": user.phone_number,
                 "gender": user.gender,
-                "birth_date": user.birth_date
+                "birth_date": user.birth_date,
+                "wallet_id": user.wallet_id
             })
         }
     })
