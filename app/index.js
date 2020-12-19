@@ -1,6 +1,8 @@
 const express = require('express');
 const {Client} = require('pg');
 
+const payments_base_url = process.env.PAYMENTS_URL ? process.env.PAYMENTS_URL : 'https://payments-server-develop.herokuapp.com'
+
 const app = express();
 
 const client = new Client({
@@ -103,7 +105,7 @@ app.delete('/reset', (req, res) =>
 app.post('/users', (req, res) => {
     var request = require('request');
 
-    request.post('https://payments-server-develop.herokuapp.com/identity', function (error, response, body) {
+    request.post(payments_base_url + '/identity', function (error, response, body) {
         if (!error && response.statusCode == 200) {
             console.log('BODY: ' + body);
             const wallet_info = JSON.parse(body)
