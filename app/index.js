@@ -81,7 +81,7 @@ function manage_login_response(query, values, res, type) {
                 res.status(403).json({"error": "El usuario está bloqueado"})
             } else {
                 if (type == 'Usuario') {
-                    res.json({"msg": `${type} logueado exitosamente`, "exp": "", "id": db_res.rows[0].id, "wallet_id": db_res.rows[0].wallet_id})
+                    res.json({"msg": `${type} logueado exitosamente`, "exp": "", "id": db_res.rows[0].id, "wallet_id": db_res.rows[0].wallet_id, "wallet_address": db_res.rows[0].wallet_address} )
                 } else {
                     res.json({"msg": `${type} logueado exitosamente`, "exp": "", "id": db_res.rows[0].id})
                 }
