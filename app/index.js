@@ -1,7 +1,7 @@
 const express = require('express');
 const {Client} = require('pg');
 
-const payments_base_url = process.env.PAYMENTS_URL ? process.env.PAYMENTS_URL : 'https://payments-server-develop.herokuapp.com'
+const payments_base_url = process.env.PAYMENTS_URL ? process.env.PAYMENTS_URL : 'https://payments-server-develop.herokuapp.com/'
 
 const app = express();
 
@@ -80,7 +80,11 @@ function manage_login_response(query, values, res, type) {
             if (db_res.rows[0].is_blocked) {
                 res.status(403).json({"error": "El usuario está bloqueado"})
             } else {
-                res.json({"msg": `${type} logueado exitosamente`, "exp": "", "id": db_res.rows[0].id})
+                if (type == 'Usuario') {
+                    res.json({"msg": `${type} logueado exitosamente`, "exp": "", "id": db_res.rows[0].id, "wallet_id": db_res.rows[0].wallet_id})
+                } else {
+                    res.json({"msg": `${type} logueado exitosamente`, "exp": "", "id": db_res.rows[0].id})
+                }
             }
         }
     })
@@ -105,7 +109,9 @@ app.delete('/reset', (req, res) =>
 app.post('/users', (req, res) => {
     var request = require('request');
 
-    request.post(payments_base_url + '/identity', function (error, response, body) {
+    console.log('payments url:', payments_base_url)
+
+    request.post(payments_base_url + 'identity', function (error, response, body) {
         if (!error && response.statusCode == 200) {
             console.log('BODY: ' + body);
             const wallet_info = JSON.parse(body)
