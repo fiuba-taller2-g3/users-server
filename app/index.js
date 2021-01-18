@@ -54,6 +54,10 @@ function add_user_query(email, password, name, surname, phone_number, gender, bi
     return 'INSERT INTO users(email, password, name, surname, phone_number, gender, birth_date, wallet_id, wallet_address)\nVALUES (\'' + email + '\', \'' + password + '\', \'' + name + '\', \'' + surname + '\', \'' + phone_number + '\', \'' + gender + '\', \'' + birth_date + '\', \'' + wallet_id + '\', \'' + wallet_address + '\');'
 }
 
+function add_fb_user_query(id, email, password, name, surname, phone_number, gender, birth_date, wallet_id, wallet_address) {
+    return 'INSERT INTO users(id, email, password, name, surname, phone_number, gender, birth_date, wallet_id, wallet_address)\nVALUES (\'' + id + '\', \'' + email + '\', \'' + password + '\', \'' + name + '\', \'' + surname + '\', \'' + phone_number + '\', \'' + gender + '\', \'' + birth_date + '\', \'' + wallet_id + '\', \'' + wallet_address + '\');'
+}
+
 function add_admin_query(email, password, name, surname, dni) {
     return 'INSERT INTO admins(email, password, name, surname, dni)\nVALUES (\'' + email + '\', \'' + password + '\', \'' + name + '\', \'' + surname + '\', \'' + dni + '\');'
 }
@@ -109,8 +113,6 @@ app.delete('/reset', (req, res) =>
 app.post('/users', (req, res) => {
     var request = require('request');
 
-    console.log('payments url:', payments_base_url)
-
     request.post(payments_base_url + 'identity', function (error, response, body) {
         if (!error && response.statusCode == 200) {
             console.log('BODY: ' + body);
@@ -128,6 +130,26 @@ app.post('/users', (req, res) => {
     })
 });
 
+app.post('/fb/users', (req, res) => {
+    var request = require('request');
+
+    request.post(payments_base_url + 'identity', function (error, response, body) {
+        if (!error && response.statusCode == 200) {
+            console.log('BODY: ' + body);
+            const wallet_info = JSON.parse(body)
+            const wallet_id = wallet_info.id
+            const wallet_address = wallet_info.address
+
+            console.log('wallet id: ' + wallet_info.id);
+            console.log('wallet address: ' + wallet_info.address);
+
+            const query = add_fb_user_query(req.body.id, req.body.email, req.body.password, req.body.name,
+                req.body.surname, req.body.phone_number, req.body.gender, req.body.birth_date, wallet_id, wallet_address)
+            manage_register_response(query, res, "Usuario");
+        }
+    })
+});
+
 app.post('/admins', (req, res) => {
     const query = add_admin_query(req.body.email, req.body.password, req.body.name, req.body.surname, req.body.dni)
     manage_register_response(query, res, "Administrador");
@@ -137,6 +159,22 @@ app.post('/users/login', (req, res) => {
     const query = 'SELECT * FROM users WHERE email = $1 AND password = $2;'
     const values = [req.body.email, req.body.password]
     manage_login_response(query, values, res, "Usuario");
+});
+
+app.post('/users/login_fb', (req, res) => {
+    const query = 'SELECT * FROM users WHERE email = $1 AND id = $2;'
+    const values = [req.body.email, req.body.id]
+    client.query(query, values, (err, db_res) => {
+        if (err) {
+            res.status(500).send(err.messageerror)
+        } else {
+            if (db_res.rows[0].is_blocked) {
+                res.status(403).json({"error": "El usuario está bloqueado"})
+            } else {
+                res.json({"msg": `Usuario logueado exitosamente`, "exp": "", "id": db_res.rows[0].id, "wallet_id": db_res.rows[0].wallet_id, "wallet_address": db_res.rows[0].wallet_address} )
+            }
+        }
+    })
 });
 
 app.post('/admins/login', (req, res) => {
