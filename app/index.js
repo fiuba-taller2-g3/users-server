@@ -209,7 +209,7 @@ app.get('/users/:user_id', (req, res) => {
 });
 
 app.get('/users', (req, res) => {
-    const query = 'SELECT id, email, is_blocked FROM users;'
+    const query = 'SELECT id, email, is_blocked, name, surname, wallet_id, phone_number, gender, birth_date FROM users;'
     client.query(query, (err, db_res) => {
         if (err) {
             res.status(500).send(err.messageerror)
@@ -218,7 +218,8 @@ app.get('/users', (req, res) => {
             res.status(404).json({"error": "No hay usuarios para mostrar"})
         } else {
             var users = []
-            db_res.rows.forEach(user => users.push(new User(user.id, user.email, user.name, user.surname, user.is_blocked)))
+            db_res.rows.forEach(user => users.push(new User(user.id, user.email, user.name, user.surname,
+              user.is_blocked, user.phone_number, user.gender, user.birth_date, user.wallet_id)))
             res.json(users)
         }
     })
@@ -257,7 +258,7 @@ app.listen(process.env.PORT, () => {
 });
 
 class User {
-    constructor(id, email, name, surname, is_blocked, phone_number, gender, birth_date) {
+    constructor(id, email, name, surname, is_blocked, phone_number, gender, birth_date, wallet_id) {
         this.id = id;
         this.email = email;
         this.name = name;
@@ -266,5 +267,6 @@ class User {
         this.phone_number = phone_number;
         this.gender = gender;
         this.birth_date = birth_date;
+        this.wallet_id = wallet_id;
     }
 }
